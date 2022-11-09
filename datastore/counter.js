@@ -53,6 +53,7 @@ exports.getNextUniqueId = (callback) => {
       });
     }
   });
+  return counter;
 };
 
 

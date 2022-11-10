@@ -47,19 +47,25 @@ exports.readOne = (id, callback) => {
     var text = data.toString();
 
     callback(null, { id: id, text: text });
-
-
   });
 };
 
 exports.update = (id, text, callback) => {
-  var item = items[id];
-  if (!item) {
-    callback(new Error(`No item with id: ${id}`));
-  } else {
-    items[id] = text;
-    callback(null, { id, text });
-  }
+  fs.readFile(`${exports.dataDir}/${id}.txt`, (err, originalText) => {
+    if (err) {
+      console.log('error in reading file in update');
+      callback(err);
+      return;
+    } else {
+      fs.writeFile(`${exports.dataDir}/${id}.txt`, text, (err) => {
+        if (err) {
+          throw 'error in creating file!';
+        }
+        items[id] = text;
+        callback(null, { id, text });
+      });
+    }
+  });
 };
 
 exports.delete = (id, callback) => {

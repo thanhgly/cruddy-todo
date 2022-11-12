@@ -2,6 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+const fsPromises = require('fs').promises;
+//const readFilePromise = Promise.promisify(fs.readFile);
 
 var items = {};
 
@@ -23,19 +25,28 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
+  // fsPromises.readdir(exports.dataDir)
+  //   .then((files) => {
+
+  //   })
+
+
+  // return Promise.all;
   fs.readdir(exports.dataDir, (err, data) => {
     if (err) {
-      throw 'error!';
+      return callback(err);
     }
     var fileNames = _.map(data, (fileName) => {
       var id = fileName.slice(0, 5);
-      var text;
-      fs.readFile(`${exports.dataDir}/${fileName}`, (err, data) => {
-        text = data;
-      });
-      return {id: id, text: id};
+      return fsPromises.readFile(`${exports.dataDir}/${fileName}`).
+        then((fileData) => {
+          return {id: id, text: fileData.toString()};
+        });
     });
-    callback(err, fileNames);
+    Promise.all(fileNames)
+      .then((files) => {
+        callback(null, files);
+      });
   });
 };
 
@@ -53,7 +64,6 @@ exports.readOne = (id, callback) => {
 exports.update = (id, text, callback) => {
   fs.readFile(`${exports.dataDir}/${id}.txt`, (err, originalText) => {
     if (err) {
-      console.log('error in reading file in update');
       callback(err);
       return;
     } else {
